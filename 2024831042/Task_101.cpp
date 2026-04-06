@@ -55,16 +55,17 @@ bool initializewindow(void)
         }
     }
 }
-void draw_circle(int cx,int cy,int r)
+void draw_circle(int cx,int cy,int r) // midpoint circle algorithm. 
 {
     int x=r; // start at rightmost point of the circle
     int y=0;
-    int err=0;
+    int err=0; // decision parameter
     while(x>=y)
     {
-         SDL_RenderDrawLine(renderer, cx - x, cy + y, cx + x, cy + y);
-        SDL_RenderDrawLine(renderer, cx - x, cy - y, cx + x, cy - y);
-        SDL_RenderDrawLine(renderer, cx - y, cy + x, cx + y, cy + x);
+        // uses synmetric
+         SDL_RenderDrawLine(renderer, cx - x, cy + y, cx + x, cy + y); // fills all pixels between two points x1,y1 and x2,y2
+        SDL_RenderDrawLine(renderer, cx - x, cy - y, cx + x, cy - y);              
+        SDL_RenderDrawLine(renderer, cx - y, cy + x, cx + y, cy + x); 
         SDL_RenderDrawLine(renderer, cx - y, cy - x, cx + y, cy - x);
         
         y++;// move to next position
@@ -84,7 +85,7 @@ void draw_circle(int cx,int cy,int r)
 void draw(void)
 {
       // Clear screen with black
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 0);
     SDL_RenderClear(renderer);
 
     // Draw white circle at center
