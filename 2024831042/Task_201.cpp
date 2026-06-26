@@ -64,7 +64,7 @@ void process_input(void)
 void update(void)
 {
     // empty for now
-    // we will add snake logic here later
+    // snake logic will be added here later
 }
 
 void draw(void)
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
         process_input();
         update();
         draw();
-        SDL_Delay(16);   // ~60fps
+        SDL_Delay(16);   // 60fps
     }
 
     destroyWindow();
