@@ -88,7 +88,35 @@ void process_input(void) //changes snake direction. handles only quiting the win
         case SDL_QUIT:
             gameIsRunning=false;
             break;
-        default:
+            case SDL_KEYDOWN:
+            switch(event.key.keysym.sym)  //This if statement enforces a safety barrier. It ensures you can only turn left or right relative to your current direction, preventing the snake from moving directly backward into itself.
+            {
+                case SDLK_UP:
+                if(snake.direction!=DOWN)
+                
+                    snake.direction=UP;
+                    break;
+                case SDLK_DOWN:
+                if (snake.direction != DOWN)
+
+                    snake.direction = UP;
+                    break;
+            case SDLK_LEFT:
+
+                if (snake.direction!=RIGHT)
+
+                    snake.direction=LEFT;
+                    break;
+
+            case SDLK_RIGHT:
+
+                if (snake.direction!=LEFT)
+
+                    snake.direction=RIGHT;
+                    break;
+            }
+            break;
+            default:
             break;
         }
     }
