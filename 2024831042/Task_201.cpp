@@ -12,6 +12,9 @@
 #define LEFT  2       
 #define RIGHT 3
 
+Uint32 lastmovet=0;//helps in calculating time in miliseconds
+Uint32 movedelay=150;//This dictates that the snake will take a step exactly every 150 milliseconds
+
 struct Point {
     int x; // column number
     int y; //row number
