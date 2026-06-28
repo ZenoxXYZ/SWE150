@@ -7,20 +7,20 @@
 #define GRID_COLS     SCREEN_WIDTH/CELL_SIZE
 #define GRID_ROWS     SCREEN_HEIGHT/CELL_SIZE
 
-#define UP    0
+#define UP    0 
 #define DOWN  1
-#define LEFT  2
+#define LEFT  2       
 #define RIGHT 3
 
 struct Point {
-    int x;
-    int y;
+    int x; // column number
+    int y; //row number
 };
 
 struct Snake {
-    Point body[500];
+    Point body[500]; // snake body positions
     int length;
-    int direction;
+    int direction;   // as the direction can't be stored as a text,it is stored as integer. thus up,down,left,right is defined as 0,1,2,3
 };
 
 bool gameIsRunning = false;
@@ -60,22 +60,22 @@ bool initializeWindow(void)
     return true;
 }
 
-void initializeSnake(void)
+void initializeSnake(void) //sets up snake data
 {
     snake.length=3; 
-    snake.direction=RIGHT;
+    snake.direction=RIGHT; 
 
-    snake.body[0].x=GRID_COLS/2;
-    snake.body[0].y=GRID_ROWS/2;
+    snake.body[0].x=GRID_COLS/2; // 54/2=27
+    snake.body[0].y=GRID_ROWS/2; // 27/2=13
 
-    snake.body[1].x=GRID_COLS/2-1;
-    snake.body[1].y=GRID_ROWS/2;
+    snake.body[1].x=GRID_COLS/2-1; // 26
+    snake.body[1].y=GRID_ROWS/2; // 13
 
-    snake.body[2].x=GRID_COLS/2-2;
-    snake.body[2].y=GRID_ROWS/2;
+    snake.body[2].x=GRID_COLS/2-2; //25
+    snake.body[2].y=GRID_ROWS/2; // 13
 }
 
-void process_input(void)
+void process_input(void) //changes snake direction. handles only quiting the window for now
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -98,17 +98,17 @@ void update(void)
 
 void drawSnake(void)
 {
-    for (int i=0; i<snake.length;i++)
+    for (int i=0; i<snake.length;i++) // looping from the head to tail
     {
         if (i==0)
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         else
             SDL_SetRenderDrawColor(renderer, 0, 180, 0, 255);
 
-        SDL_Rect cell;
+        SDL_Rect cell; //creates a blank rectangle structure variable named cell.
         cell.x= snake.body[i].x *CELL_SIZE+1;
-        cell.y=snake.body[i].y *CELL_SIZE+1;
-        cell.w=CELL_SIZE-2;
+        cell.y=snake.body[i].y *CELL_SIZE+1;   
+        cell.w=CELL_SIZE-2;   //creates a rectangle that is smaller than the cell boundaries.
         cell.h=CELL_SIZE-2;
 
         SDL_RenderFillRect(renderer, &cell);
