@@ -130,6 +130,14 @@ void update(void)
         return; //If 150ms haven't passed yet, skip the update and don't move the snake." This keeps the game speed manageable and smooth.
     }
     lastmovetime=currentTime;
+    for(int i=snake.length-1;i>0;i--)
+    {
+        snake.body[i]=snake.body[i-1];
+    }
+    if(snake.direction==RIGHT)
+    {
+        snake.body[0].x+=1; // Head steps forward into brand new empty grid tile
+    }
 }
 
 void drawSnake(void)
