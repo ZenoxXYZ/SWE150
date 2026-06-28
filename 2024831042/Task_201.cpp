@@ -12,7 +12,7 @@
 #define LEFT  2       
 #define RIGHT 3
 
-Uint32 lastmovet=0;//helps in calculating time in miliseconds
+Uint32 lastmovetime=0;//helps in calculating time in miliseconds
 Uint32 movedelay=150;//This dictates that the snake will take a step exactly every 150 milliseconds
 
 struct Point {
@@ -96,7 +96,12 @@ void process_input(void) //changes snake direction. handles only quiting the win
 
 void update(void)
 {
-    // empty for now
+    Uint32 currentTime=SDL_GetTicks(); // acts like a stopwatch. It returns how many milliseconds have passed since the game window first opened.
+    if(currentTime-lastmovetime<movedelay)
+    {
+        return; //If 150ms haven't passed yet, skip the update and don't move the snake." This keeps the game speed manageable and smooth.
+    }
+    lastmovetime=currentTime;
 }
 
 void drawSnake(void)
