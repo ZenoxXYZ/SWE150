@@ -44,7 +44,7 @@ Snake snake;
 Food  food;
 
 Uint32 lastMoveTime = 0;
-Uint32 moveDelay    = 60;   //This dictates that the snake will take a step exactly every 150 milliseconds
+Uint32 moveDelay    = 80;   //This dictates that the snake will take a step exactly every 150 milliseconds
 
 
 bool initializeWindow(void)
@@ -94,20 +94,7 @@ void initializeSnake(void) //sets up snake data
     snake.body[2].y = GRID_ROWS / 2;     // 13
 }
 
-void initializeFood(void) //sets up food data
-{
-    srand(time(NULL)); // seeds the random number generator using current time so food spawns differently each game
 
-    food.position.x = rand() % GRID_COLS;   // picks a random column between 0 and 53
-    food.position.y = rand() % GRID_ROWS;   // picks a random row between 0 and 26
-    food.active     = true;                 // food is visible on screen
-}
-void resetgame(void) // resets everything back to start,called when player presses R. It returns the variables to their exact initial states without clearing memory or destroying your window instance.
-{
-    gameover = false; 
-    initializeSnake();
-    spawnFood(); 
-}
 void spawnFood(void) //places food at a new random position after it gets eaten
 {
     bool validPosition = false;
@@ -131,7 +118,50 @@ void spawnFood(void) //places food at a new random position after it gets eaten
 
     food.active = true;
 }
+void initializeFood(void) //sets up food data
+{
+    srand(time(NULL)); // seeds the random number generator using current time so food spawns differently each game
 
+    food.position.x = rand() % GRID_COLS;   // picks a random column between 0 and 53
+    food.position.y = rand() % GRID_ROWS;   // picks a random row between 0 and 26
+    food.active     = true;                 // food is visible on screen
+}
+void resetGame(void) //resets everything back to start,called when player presses R.It returns the variables to their exact initial states without clearing memory or destroying your window instance.
+{
+    gameover = false; //
+    initializeSnake();
+    spawnFood(); 
+}
+
+bool checkwallcollision(void) // returns true if snake head went outside the grid boundaries
+{
+    int headX=snake.body[0].x;
+    int headY=snake.body[0].y;
+
+    if (headX < 0)          return true;  // hit left wall  
+    if (headX >= GRID_COLS) return true;  // hit right wall
+    if (headY < 0)          return true;  // hit top wall
+    if (headY >= GRID_ROWS) return true;  // hit bottom wall
+
+
+ // if headX falls below 0 (left side) or hits/exceeds GRID_COLS (54 cells total, meaning index 54 is out-of-bounds on the right), it returns true. The exact same safety boundary check applies to the rows (GRID_ROWS).
+
+
+
+    return false; // no wall collision
+}
+
+bool checkselfcollision(void)
+{
+    for(int i=1;i<snake.length;i++)
+    {
+    if(snake.body[0].x == snake.body[i].x && snake.body[0].y == snake.body[i].y)
+    {
+        return true;//snake head hit his body
+    }
+    }
+    return false;
+}
 void process_input(void) //changes snake direction
 {
     SDL_Event event;
@@ -162,40 +192,16 @@ void process_input(void) //changes snake direction
                 if (snake.direction != LEFT)
                     snake.direction = RIGHT;
                 break;
+                case SDLK_r:
+    if(gameover)
+        resetGame(); // only allow restart if game is actually over
+    break;
             }
             break;
 
         default:
             break;
         }
-    }
-}
-bool checkwallcollision(void) // returns true if snake head went outside the grid boundaries
-{
-    int headX=snake.body[0].x;
-    int headY=snake.body[0].y;
-
-    if (headX < 0)          return true;  // hit left wall  
-    if (headX >= GRID_COLS) return true;  // hit right wall
-    if (headY < 0)          return true;  // hit top wall
-    if (headY >= GRID_ROWS) return true;  // hit bottom wall
-
-
- // if headX falls below 0 (left side) or hits/exceeds GRID_COLS (54 cells total, meaning index 54 is out-of-bounds on the right), it returns true. The exact same safety boundary check applies to the rows (GRID_ROWS).
-
-
-
-    return false; // no wall collision
-}
-
-bool checkselfcollision(void)
-{
-    for(int i=1;i<snake.length;i++)
-    {
-    if(snake.body[0].x == snake.body[i].x && snake.body[0].y == snake.body[i].y)
-    {
-        return true;//snake head hit his body
-    }
     }
 }
 void update(void)
@@ -227,7 +233,7 @@ void update(void)
 
  // check collisions after moving the head
 
-if(checkwallcollision()||checkselfcollision)
+if(checkwallcollision()||checkselfcollision())
 {
     gameover=true;//the game is over as a collision has occured
 }
@@ -292,6 +298,12 @@ void drawGameOver(void) //shows a red screen with a white box in the center when
 
 void draw(void)
 {
+    if(gameover)
+    {
+        drawGameOver();  // show game over screen when snake dies
+        SDL_RenderPresent(renderer);
+        return;          // skip drawing snake and food
+    }
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black background
     SDL_RenderClear(renderer);
 
