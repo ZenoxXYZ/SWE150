@@ -1,8 +1,10 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>  
 #include <stdio.h>
 #include <cstdlib>   // for rand() and srand()-
-#include <ctime>     // for time()    
-
+#include <ctime>     // for time()   
+#include<string.h> 
+#include <string>
 
 
 //The code uses two standard libraries (<cstdlib> and <ctime>) to calculate dynamic random positions:
@@ -39,9 +41,11 @@ bool gameIsRunning = false;
 bool gameover=false; //tracks whether the snake has died
 SDL_Window*   window   = NULL;
 SDL_Renderer* renderer = NULL;
+TTF_Font* font     = NULL;
 
 Snake snake;
 Food  food;
+int score = 0;   // tracks how many food pieces the snake has eaten
 
 Uint32 lastMoveTime = 0;
 Uint32 moveDelay    = 80;   //This dictates that the snake will take a step exactly every 150 milliseconds
@@ -69,10 +73,21 @@ bool initializeWindow(void)
         return false;
     }
 
+    if (TTF_Init() < 0) // initializes the text rendering library,must be called before loading any font
+    {
+        SDL_Log("TTF failed to initialize: %s", TTF_GetError());
+        return false;
+    }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer)
     {
         SDL_Log("Renderer failed to create: %s", SDL_GetError());
+        return false;
+    }
+    font = TTF_OpenFont("PressStart2P-Regular.ttf", 24); // loads the font file at size 24
+    if (!font)
+    {
+        SDL_Log("Font failed to load: %s", TTF_GetError());
         return false;
     }
 
@@ -128,7 +143,8 @@ void initializeFood(void) //sets up food data
 }
 void resetGame(void) //resets everything back to start,called when player presses R.It returns the variables to their exact initial states without clearing memory or destroying your window instance.
 {
-    gameover = false; //
+    gameover = false; 
+    score=0;//reset score on restart
     initializeSnake();
     spawnFood(); 
 }
@@ -243,7 +259,8 @@ if(checkwallcollision()||checkselfcollision())
         snake.body[0].x == food.position.x &&
         snake.body[0].y == food.position.y)
     {
-        snake.length++; // snake length grows by 1
+        snake.length++;// snake length grows by 1
+        score++;//score increases 
         spawnFood();    // place new food somewhere on the grid(random food generation again)
     }
 }
@@ -281,26 +298,63 @@ void drawFood(void)
 
     SDL_RenderFillRect(renderer, &cell);
 }
+void drawText(const char* text, int x, int y, SDL_Color color) //renders any text string at a given position on screen
+{
+    SDL_Surface* surface = TTF_RenderText_Solid(font, text, color); // renders text into a pixel surface using the loaded font
+    if (!surface) return;
 
-void drawGameOver(void) //shows a red screen with a white box in the center when the snake dies
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); // converts the surface into a GPU texture so SDL can draw it
+    SDL_FreeSurface(surface); // surface is no longer needed after converting to texture
+    if (!texture) return;
+
+    int textWidth, textHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &textWidth, &textHeight); // reads the width and height of the text so we can position it correctly
+
+    SDL_Rect destRect = {x, y, textWidth, textHeight}; // rectangle that tells SDL where and how big to draw the text
+    SDL_RenderCopy(renderer, texture, NULL, &destRect);
+
+    SDL_DestroyTexture(texture); // free texture after drawing,otherwise memory leaks
+}
+void drawscore(void)
+{
+    // convert score number to string
+    std::string scoreText = "SCORE: " + std::to_string(score);
+
+    // white color for score text
+    SDL_Color white = {255, 255, 255, 255};
+
+    // draw at top left corner
+    drawText(scoreText.c_str(), 10, 10, white);
+}
+    void drawgameover(void) //shows a red screen with game over text and final score when the snake dies
 {
     SDL_SetRenderDrawColor(renderer, 150, 0, 0, 255); // dark red background
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // white message box
-    SDL_Rect messageBox;
-    messageBox.x = SCREEN_WIDTH /2-200; // centered horizontally
-    messageBox.y = SCREEN_HEIGHT/2-50;  // centered vertically
-    messageBox.w = 400;
-    messageBox.h = 100;
-    SDL_RenderFillRect(renderer, &messageBox);
-}
+    SDL_Color white  = {255, 255, 255, 255};
+    SDL_Color yellow = {255, 255, 0,   255};
 
+    drawText("GAME OVER",
+             SCREEN_WIDTH /2-150,
+             SCREEN_HEIGHT/2-80,
+             white);
+
+    std::string finalScore = "SCORE: " + std::to_string(score); // shows the score the player ended with
+    drawText(finalScore.c_str(),
+             SCREEN_WIDTH  / 2 - 100,
+             SCREEN_HEIGHT / 2,
+             yellow); // yellow so it stands out from the other text
+
+    drawText("PRESS R TO RESTART",
+             SCREEN_WIDTH  / 2 - 220,
+             SCREEN_HEIGHT / 2 + 80,
+             white);
+}
 void draw(void)
 {
     if(gameover)
     {
-        drawGameOver();  // show game over screen when snake dies
+        drawgameover();  // show game over screen when snake dies
         SDL_RenderPresent(renderer);
         return;          // skip drawing snake and food
     }
@@ -309,6 +363,7 @@ void draw(void)
 
     drawFood();  // draw food first so snake renders on top of it
     drawSnake();
+    drawscore();
 
     SDL_RenderPresent(renderer);
 }
