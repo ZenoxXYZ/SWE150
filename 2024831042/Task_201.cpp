@@ -36,6 +36,7 @@ struct Food {
 };
 
 bool gameIsRunning = false;
+bool gameover=false; //tracks whether the snake has died
 SDL_Window*   window   = NULL;
 SDL_Renderer* renderer = NULL;
 
@@ -43,7 +44,8 @@ Snake snake;
 Food  food;
 
 Uint32 lastMoveTime = 0;
-Uint32 moveDelay    = 150;   //This dictates that the snake will take a step exactly every 150 milliseconds
+Uint32 moveDelay    = 60;   //This dictates that the snake will take a step exactly every 150 milliseconds
+
 
 bool initializeWindow(void)
 {
@@ -100,7 +102,12 @@ void initializeFood(void) //sets up food data
     food.position.y = rand() % GRID_ROWS;   // picks a random row between 0 and 26
     food.active     = true;                 // food is visible on screen
 }
-
+void resetgame(void) // resets everything back to start,called when player presses R. It returns the variables to their exact initial states without clearing memory or destroying your window instance.
+{
+    gameover = false; 
+    initializeSnake();
+    spawnFood(); 
+}
 void spawnFood(void) //places food at a new random position after it gets eaten
 {
     bool validPosition = false;
@@ -163,9 +170,40 @@ void process_input(void) //changes snake direction
         }
     }
 }
+bool checkwallcollision(void) // returns true if snake head went outside the grid boundaries
+{
+    int headX=snake.body[0].x;
+    int headY=snake.body[0].y;
 
+    if (headX < 0)          return true;  // hit left wall  
+    if (headX >= GRID_COLS) return true;  // hit right wall
+    if (headY < 0)          return true;  // hit top wall
+    if (headY >= GRID_ROWS) return true;  // hit bottom wall
+
+
+ // if headX falls below 0 (left side) or hits/exceeds GRID_COLS (54 cells total, meaning index 54 is out-of-bounds on the right), it returns true. The exact same safety boundary check applies to the rows (GRID_ROWS).
+
+
+
+    return false; // no wall collision
+}
+
+bool checkselfcollision(void)
+{
+    for(int i=1;i<snake.length;i++)
+    {
+    if(snake.body[0].x == snake.body[i].x && snake.body[0].y == snake.body[i].y)
+    {
+        return true;//snake head hit his body
+    }
+    }
+}
 void update(void)
 {
+    if(gameover)
+    {
+        return; // won't update anything if the snake is already dead
+    }
     Uint32 currentTime = SDL_GetTicks(); // acts like a stopwatch. It returns how many milliseconds have passed since the game window first opened.
     if (currentTime - lastMoveTime < moveDelay)
         return; //If 150ms haven't passed yet, skip the update and don't move the snake. This keeps the game speed manageable and smooth.
@@ -176,7 +214,7 @@ void update(void)
         snake.body[i] = snake.body[i - 1];
     }
 
-    // move head forward into a brand new empty grid tile based on current direction
+ // move head forward into a brand new empty grid tile based on current direction
     if (snake.direction == UP)
         snake.body[0].y -= 1;
     else if (snake.direction == DOWN)
@@ -186,7 +224,15 @@ void update(void)
     else if (snake.direction == RIGHT)
         snake.body[0].x += 1;
 
-    // check if snake head is on the same cell as the food
+
+ // check collisions after moving the head
+
+if(checkwallcollision()||checkselfcollision)
+{
+    gameover=true;//the game is over as a collision has occured
+}
+
+// check if snake head is on the same cell as the food
     if (food.active &&
         snake.body[0].x == food.position.x &&
         snake.body[0].y == food.position.y)
@@ -228,6 +274,20 @@ void drawFood(void)
     cell.h = CELL_SIZE - 2;
 
     SDL_RenderFillRect(renderer, &cell);
+}
+
+void drawGameOver(void) //shows a red screen with a white box in the center when the snake dies
+{
+    SDL_SetRenderDrawColor(renderer, 150, 0, 0, 255); // dark red background
+    SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // white message box
+    SDL_Rect messageBox;
+    messageBox.x = SCREEN_WIDTH /2-200; // centered horizontally
+    messageBox.y = SCREEN_HEIGHT/2-50;  // centered vertically
+    messageBox.w = 400;
+    messageBox.h = 100;
+    SDL_RenderFillRect(renderer, &messageBox);
 }
 
 void draw(void)
