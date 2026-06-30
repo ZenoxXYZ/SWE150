@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>  
 #include <stdio.h>
-#include <cstdlib>   // for rand() and srand()-
+#include <cstdlib>   // for rand() and srand()
 #include <ctime>     // for time()   
 #include<string.h> 
 #include <string>
@@ -9,6 +9,8 @@
 
 //The code uses two standard libraries (<cstdlib> and <ctime>) to calculate dynamic random positions:
 
+
+//CONSTANTS & GAME GRID CONFIGURATION
 
 #define SCREEN_WIDTH  1080
 #define SCREEN_HEIGHT 540
@@ -20,6 +22,10 @@
 #define DOWN  1
 #define LEFT  2
 #define RIGHT 3
+
+
+
+// DATA STRUCTURES //
 
 struct Point {
     int x;   // column number
@@ -37,6 +43,8 @@ struct Food {
     bool active;       // is the food currently on screen?
 };
 
+//GLOBAL STATE AND SYSTEMS
+
 bool gameIsRunning = false;
 bool gameover=false; //tracks whether the snake has died
 SDL_Window*   window   = NULL;
@@ -48,7 +56,11 @@ Food  food;
 int score = 0;   // tracks how many food pieces the snake has eaten
 
 Uint32 lastMoveTime = 0;
-Uint32 moveDelay    = 80;   //This dictates that the snake will take a step exactly every 150 milliseconds
+Uint32 moveDelay    = 80;   //This dictates that the snake will take a step exactly every 80 milliseconds
+
+
+
+// SYSTEM INITIALIZATION & CORE FUNCTIONS//
 
 
 bool initializeWindow(void)
@@ -149,6 +161,8 @@ void resetGame(void) //resets everything back to start,called when player presse
     spawnFood(); 
 }
 
+// PHYSICS COLLISION CHECKING LOGIC
+
 bool checkwallcollision(void) // returns true if snake head went outside the grid boundaries
 {
     int headX=snake.body[0].x;
@@ -178,6 +192,10 @@ bool checkselfcollision(void)
     }
     return false;
 }
+
+// INPUT PROCESSING & EVENTS//
+
+
 void process_input(void) //changes snake direction
 {
     SDL_Event event;
@@ -220,6 +238,9 @@ void process_input(void) //changes snake direction
         }
     }
 }
+
+// STATE UPDATES (GAME TICK)//
+
 void update(void)
 {
     if(gameover)
@@ -270,7 +291,7 @@ void drawSnake(void)
     for (int i = 0; i < snake.length; i++) // looping from head to tail
     {
         if (i == 0)
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // head is bright green
+           SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); // head is cyan
         else
             SDL_SetRenderDrawColor(renderer, 0, 180, 0, 255); // body is dark green
 
@@ -298,6 +319,10 @@ void drawFood(void)
 
     SDL_RenderFillRect(renderer, &cell);
 }
+
+// GRAPHICS RENDERING ENGINE PIPELINE//
+
+
 void drawText(const char* text, int x, int y, SDL_Color color) //renders any text string at a given position on screen
 {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color); // renders text into a pixel surface using the loaded font
@@ -367,6 +392,7 @@ void draw(void)
 
     SDL_RenderPresent(renderer);
 }
+// RESOURCE CLEANUP & DESTRUCTION//
 
 void destroyWindow(void) // frees all SDL memory before closing
 {
